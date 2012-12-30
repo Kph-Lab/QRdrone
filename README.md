@@ -7,7 +7,8 @@
  * [インターフェース](#インターフェース)
 
 ## これは何？
-mbedを使ったクアッドコプター。
+mbedを使ったクアッドコプターを作ろうプロジェクト。  
+クアッドコプターに載せたmbedがXBee経由でPCと通信する。
 
 ## 扱う情報
 ### ヘリコプターから
@@ -30,8 +31,9 @@ mbedを使ったクアッドコプター。
 
 
 ## ヘリコプターとの通信プロトコル
-`\xff`は必ず後ろに`\x01`をつける。すぐ後に`\x00`が来たら__magic number__とみなす。
-この変換処理は、長さで混乱しないように送信直前と受信直後にやる。
+送信直前に、`+`を全て`+\x00`で置き換え、受信直後に`+\x00`を`+`に置き換えることで、  
+通信途中で`++`(XBeeの設定モードに入る)が現れないようにする。
+
 括弧内はバイト数
 
     < header (12)>
@@ -55,20 +57,20 @@ type: OK_CHANGE_MODE(0x11) (pc <-> helicopter)
 
 type: REPORT_CONTEXT(0x20) (pc <- helicopter)
 
-    < body () >
+    < body (21) >
       (1)[current mode]
-    　()[acceleration]
-      ()[angular velocity]
-      ()[height]
-      ()[geographical position]
-      ()[motor voltage]
+    　(4)[acceleration] //加速度
+      (4)[angular velocity] //角速度
+      (4)[height] //高度
+      (4)[geographical position] //GPSの位置座標
+      (4)[motor voltage] //モーター電圧
 
 type: CHANGE_GEARSHIFT(0x30) (pc -> helicopter)
 
-    < body () >
-	  ()[power change lever]
-	  ()[direction lever (pitch)]
-	  ()[direction lever (roll)]
+    < body (12) >
+	  (4)[power change lever]
+	  (4)[direction lever (pitch)]
+	  (4)[direction lever (roll)]
 
 
 ## やること
